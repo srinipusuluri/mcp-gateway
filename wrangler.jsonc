@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "salesforce-codemode-gateway",
+  "main": "apps/worker/src/index.ts",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Dynamic Worker Loader: runs generated code in a fresh, network-less isolate per execution.
+  "worker_loaders": [{ "binding": "LOADER" }],
+
+  // One Durable Object hosts audit chain, approvals, rate limits, metrics (SQLite-backed storage).
+  "durable_objects": { "bindings": [{ "name": "GATEWAY", "class_name": "GatewayDO" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["GatewayDO"] }],
+
+  // Dashboard (built by `npm run build:dashboard`). API/MCP/OAuth paths go to the Worker first.
+  "assets": {
+    "directory": "./apps/dashboard/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/mcp", "/mcp/*", "/oauth/*", "/health"]
+  },
+
+  // Non-secret defaults. Secrets (GATEWAY_JWT_SECRET, SF_CLIENT_SECRET, TOKEN_ENCRYPTION_KEY,
+  // ANTHROPIC_API_KEY) are set with `wrangler secret put` and are never committed.
+  "vars": {
+    "SF_MODE": "mock",
+    "SF_LOGIN_URL": "https://login.salesforce.com",
+    "SF_API_VERSION": "v66.0",
+    "ALLOW_DEV_TOKENS": "false"
+  },
+  "observability": { "enabled": true }
+}

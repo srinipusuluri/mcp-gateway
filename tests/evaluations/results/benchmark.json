@@ -1,0 +1,229 @@
+{
+  "summaries": [
+    {
+      "approach": "traditional-mcp",
+      "workflow": "account-360",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 3,
+      "toolInvocations": 4,
+      "salesforceApiCalls": 8,
+      "inputTokensEst": 14903,
+      "outputTokensEst": 346,
+      "gatewayLatencyMsMedian": 0.48,
+      "completionTimeMsEstMedian": 10030
+    },
+    {
+      "approach": "code-mode (discover + execute)",
+      "workflow": "account-360",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 3,
+      "toolInvocations": 2,
+      "salesforceApiCalls": 8,
+      "inputTokensEst": 23450,
+      "outputTokensEst": 662,
+      "gatewayLatencyMsMedian": 6.35,
+      "completionTimeMsEstMedian": 16371
+    },
+    {
+      "approach": "code-mode (execute only, types preloaded)",
+      "workflow": "account-360",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 2,
+      "toolInvocations": 1,
+      "salesforceApiCalls": 8,
+      "inputTokensEst": 13781,
+      "outputTokensEst": 644,
+      "gatewayLatencyMsMedian": 2.39,
+      "completionTimeMsEstMedian": 14058
+    },
+    {
+      "approach": "traditional-mcp",
+      "workflow": "sales-pipeline",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 3,
+      "toolInvocations": 3,
+      "salesforceApiCalls": 5,
+      "inputTokensEst": 16841,
+      "outputTokensEst": 396,
+      "gatewayLatencyMsMedian": 0.56,
+      "completionTimeMsEstMedian": 11106
+    },
+    {
+      "approach": "code-mode (discover + execute)",
+      "workflow": "sales-pipeline",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 3,
+      "toolInvocations": 2,
+      "salesforceApiCalls": 5,
+      "inputTokensEst": 23516,
+      "outputTokensEst": 587,
+      "gatewayLatencyMsMedian": 4.84,
+      "completionTimeMsEstMedian": 15128
+    },
+    {
+      "approach": "code-mode (execute only, types preloaded)",
+      "workflow": "sales-pipeline",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 2,
+      "toolInvocations": 1,
+      "salesforceApiCalls": 5,
+      "inputTokensEst": 13847,
+      "outputTokensEst": 569,
+      "gatewayLatencyMsMedian": 2.15,
+      "completionTimeMsEstMedian": 12816
+    },
+    {
+      "approach": "traditional-mcp",
+      "workflow": "customer-risk",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 3,
+      "toolInvocations": 3,
+      "salesforceApiCalls": 6,
+      "inputTokensEst": 17893,
+      "outputTokensEst": 370,
+      "gatewayLatencyMsMedian": 0.45,
+      "completionTimeMsEstMedian": 10804
+    },
+    {
+      "approach": "code-mode (discover + execute)",
+      "workflow": "customer-risk",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 3,
+      "toolInvocations": 2,
+      "salesforceApiCalls": 6,
+      "inputTokensEst": 23299,
+      "outputTokensEst": 641,
+      "gatewayLatencyMsMedian": 5.27,
+      "completionTimeMsEstMedian": 16001
+    },
+    {
+      "approach": "code-mode (execute only, types preloaded)",
+      "workflow": "customer-risk",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 2,
+      "toolInvocations": 1,
+      "salesforceApiCalls": 6,
+      "inputTokensEst": 13630,
+      "outputTokensEst": 623,
+      "gatewayLatencyMsMedian": 2.41,
+      "completionTimeMsEstMedian": 13689
+    },
+    {
+      "approach": "traditional-mcp",
+      "workflow": "service-intelligence",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 4,
+      "toolInvocations": 3,
+      "salesforceApiCalls": 4,
+      "inputTokensEst": 20871,
+      "outputTokensEst": 310,
+      "gatewayLatencyMsMedian": 0.28,
+      "completionTimeMsEstMedian": 10976
+    },
+    {
+      "approach": "code-mode (discover + execute)",
+      "workflow": "service-intelligence",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 3,
+      "toolInvocations": 2,
+      "salesforceApiCalls": 4,
+      "inputTokensEst": 23223,
+      "outputTokensEst": 553,
+      "gatewayLatencyMsMedian": 4.17,
+      "completionTimeMsEstMedian": 14524
+    },
+    {
+      "approach": "code-mode (execute only, types preloaded)",
+      "workflow": "service-intelligence",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 2,
+      "toolInvocations": 1,
+      "salesforceApiCalls": 4,
+      "inputTokensEst": 13554,
+      "outputTokensEst": 535,
+      "gatewayLatencyMsMedian": 1.9,
+      "completionTimeMsEstMedian": 12213
+    },
+    {
+      "approach": "traditional-mcp",
+      "workflow": "cross-system-analysis",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 3,
+      "toolInvocations": 18,
+      "salesforceApiCalls": 4,
+      "inputTokensEst": 17611,
+      "outputTokensEst": 677,
+      "gatewayLatencyMsMedian": 1.06,
+      "completionTimeMsEstMedian": 15886
+    },
+    {
+      "approach": "code-mode (discover + execute)",
+      "workflow": "cross-system-analysis",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 3,
+      "toolInvocations": 2,
+      "salesforceApiCalls": 4,
+      "inputTokensEst": 24154,
+      "outputTokensEst": 594,
+      "gatewayLatencyMsMedian": 4.95,
+      "completionTimeMsEstMedian": 15324
+    },
+    {
+      "approach": "code-mode (execute only, types preloaded)",
+      "workflow": "cross-system-analysis",
+      "runs": 30,
+      "successRate": 1,
+      "modelRoundTrips": 2,
+      "toolInvocations": 1,
+      "salesforceApiCalls": 4,
+      "inputTokensEst": 14485,
+      "outputTokensEst": 576,
+      "gatewayLatencyMsMedian": 2.89,
+      "completionTimeMsEstMedian": 13014
+    }
+  ],
+  "meta": {
+    "generatedAt": "2026-11-11T13:11:25.764Z",
+    "runsPerCell": 30,
+    "node": "v24.10.0",
+    "sandbox": "quickjs-wasm (local); production uses Cloudflare Dynamic Workers",
+    "data": "built-in mock Salesforce org",
+    "measured": [
+      "modelRoundTrips",
+      "toolInvocations",
+      "salesforceApiCalls",
+      "gatewayLatencyMs",
+      "successRate"
+    ],
+    "estimated": {
+      "tokens": "UTF-8 chars / 4 on the exact payloads exchanged (identical estimator for every approach)",
+      "finalAnswerTokens": 250,
+      "systemPromptTokens": 400,
+      "modelTime": {
+        "fixedMsPerTurn": 800,
+        "outputTokensPerSecond": 60,
+        "inputTokensPerSecond": 8000
+      }
+    },
+    "caveats": [
+      "No live model is called: model behaviour (e.g. whether Claude batches parallel tool calls) is a stated assumption: the traditional plan is the BEST case (parallel calls per turn, describe-cache shared across calls).",
+      "Traditional success means every planned tool call succeeded; it does not grade a model-written final answer.",
+      "Mock data is small; with larger real result sets the traditional input-token cost grows with raw payload size while Code Mode returns only the aggregated result.",
+      "Gateway latency excludes network RTT to a deployed Worker."
+    ]
+  }
+}

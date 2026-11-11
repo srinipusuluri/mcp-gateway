@@ -1,0 +1,64 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": [
+      "ES2023"
+    ],
+    "types": [
+      "@cloudflare/workers-types",
+      "node"
+    ],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@sfcm/shared-types": [
+        "packages/shared-types/src/index.ts"
+      ],
+      "@sfcm/security": [
+        "packages/security/src/index.ts"
+      ],
+      "@sfcm/governance": [
+        "packages/governance/src/index.ts"
+      ],
+      "@sfcm/observability": [
+        "packages/observability/src/index.ts"
+      ],
+      "@sfcm/salesforce-client": [
+        "packages/salesforce-client/src/index.ts"
+      ],
+      "@sfcm/tool-registry": [
+        "packages/tool-registry/src/index.ts"
+      ],
+      "@sfcm/salesforce-mcp": [
+        "packages/salesforce-mcp/src/index.ts"
+      ],
+      "@sfcm/codemode-runtime": [
+        "packages/codemode-runtime/src/index.ts"
+      ],
+      "@sfcm/worker": [
+        "apps/worker/src/app.ts"
+      ]
+    }
+  },
+  "include": [
+    "packages/**/src",
+    "apps/worker/src",
+    "tests",
+    "examples",
+    "scripts",
+    "*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "apps/dashboard"
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "name": "salesforce-claude-codemode",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Salesforce Claude Code Mode Platform: MCP gateway + sandboxed TypeScript orchestration for Salesforce",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json && npm run typecheck -w @sfcm/dashboard",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:security": "vitest run tests/security",
+    "bench": "tsx tests/evaluations/run-benchmark.ts",
+    "dev:worker": "npm run build -w @sfcm/dashboard && wrangler dev",
+    "dev:dashboard": "npm run dev -w @sfcm/dashboard",
+    "build:dashboard": "npm run build -w @sfcm/dashboard",
+    "deploy": "npm run build:dashboard && wrangler deploy",
+    "token": "tsx scripts/mint-token.ts",
+    "example": "tsx scripts/run-example.ts",
+    "examples:generate": "tsx scripts/generate-examples.ts",
+    "verify:deployment": "./scripts/verify-deployment.sh"
+  },
+  "dependencies": {
+    "@cloudflare/codemode": "0.5.6",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "acorn": "8.19.0",
+    "jose": "6.2.17",
+    "quickjs-emscripten": "0.32.0",
+    "sucrase": "3.35.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261110.1",
+    "@eslint/js": "^9.29.0",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.29.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.9.0",
+    "typescript-eslint": "8.72.2",
+    "vitest": "^3.2.0",
+    "wrangler": "4.160.0"
+  }
+}

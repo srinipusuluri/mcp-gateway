@@ -1,0 +1,16 @@
+node_modules
+dist
+.dev.vars
+.env
+.wrangler
+*.log
+tests/evaluations/results/*.tmp
+.dev.vars*
+.env.*
+!.env.example
+*.pem
+*.key
+.DS_Store
+docs/paper/*.aux
+docs/paper/*.log
+docs/paper/*.out
