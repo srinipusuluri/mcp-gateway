@@ -32,8 +32,9 @@ Fewer turns and tool calls are proven. Token and time savings depend on fan-out 
 
 | | |
 |---|---|
-| ✅ Verified | typecheck, lint, **156 tests** (unit, integration, MCP protocol, security), benchmark harness, dashboard production build, and the Account 360 + cross-system workflows executing in the **real Cloudflare Dynamic Worker (workerd)** through the real MCP endpoint |
+| ✅ Verified | typecheck, lint, **180 tests** (unit, integration, MCP protocol, security, eval gates), benchmark harness, dashboard production build, and the Account 360 + cross-system workflows executing in the **real Cloudflare Dynamic Worker (workerd)** through the real MCP endpoint |
 | ✅ Live org | Per-user OAuth (PKCE) and read workflows ran against a real Salesforce Developer Edition org; live security probes passed. Live **writes** were only tested up to the approval gate |
+| ✅ Guardrails & evals | Prompt-injection guardrail policies enforced at the checkpoint (detect → sanitize/quarantine/block → taint-blocks writes); deterministic eval gates for tools, agent trajectories, RAG and guardrails run in `npm test` |
 | ⚠️ Not verified | **CPU-loop termination on Cloudflare production:** a synchronous infinite loop hung local `wrangler dev` even with `limits.cpuMs`; run `npm run verify:deployment` against a deployed Worker before exposing to untrusted code |
 | 🧪 Mock-only | Data Cloud, Agentforce, NetSuite, `getSubscriptions`: mock adapters implement the contract; live adapters are **not** included (see [docs/tool-registry.md](docs/tool-registry.md)) |
 
@@ -74,7 +75,7 @@ Claude → gateway (`Authorization: Bearer <JWT>`) → per-user Salesforce OAuth
 ```bash
 npm install
 cp .env.example .dev.vars          # set GATEWAY_JWT_SECRET to a 32+ char random string
-npm test                           # 156 tests
+npm test                           # 180 tests
 npm run example -- account-360     # run the first workflow locally
 npm run dev:worker                 # real workerd + Dynamic Worker on http://127.0.0.1:8787 (dashboard at /)
 ```
@@ -126,13 +127,52 @@ Define a tool with `defineTool` (Zod input/output, permission, kind, handler usi
 
 Writes (`createCase`, `updateCase`, `invokeApprovedAgentAction`) are approval-gated. A `service_agent` runs a program → `approval_required` + id → a *different* user with `approver`/`admin` approves in **Security Center → Approval queue** (exact arguments shown) → the requester re-runs → executes exactly once. Switches: `writesEnabled`, `writesRequireApproval`, `allowSelfApproval`, `approvalTtlMs`. See [docs/tool-registry.md](docs/tool-registry.md#enabling-approved-write-operations).
 
-## 10. Tests and benchmarks
+## 10. Prompt-injection guardrails
+
+Salesforce text is untrusted: anyone who can file a case or edit an article can plant instructions. Every string returned by a tool, and the final result, passes configurable policies at the checkpoint:
+
+- **Detect** 10 categories: instruction override, role hijack, fake system turns, tool coercion, secret seeking, exfiltration links, hidden Unicode, active HTML, untrusted links, encoded payloads.
+- **Act** per category: `allow`, `flag`, `sanitize`, `quarantine` or `block`.
+- **Taint:** once an execution reads injected text, its writes are refused before an approval is created.
+- **Write inputs** carrying injection text are refused.
+- **Report** every hit in `metadata.guardrails`, the audit log, traces and dashboard metrics.
+
+Policies are set with `GUARDRAIL_POLICY_JSON`; there is a monitor mode for rollout and a strict preset. Details: [docs/prompt-injection-guardrails.md](docs/prompt-injection-guardrails.md).
+
+## 11. Observability (OpenTelemetry, open source)
+
+Set `OTEL_EXPORTER_OTLP_ENDPOINT` and each execution becomes a trace: an `execute_code` CHAIN span with one TOOL span per Salesforce call. Spans use the OpenTelemetry GenAI and OpenInference conventions, so **Phoenix, Langfuse, Jaeger, Tempo and SigNoz** render them natively. A W3C `traceparent` from the agent links its trace to the gateway's. Spans carry metadata only unless `OTEL_CAPTURE_CONTENT=true`, which live mode refuses.
+
+```bash
+docker compose -f observability/docker-compose.yml up -d   # Collector → Phoenix :6006 + Jaeger :16686
+```
+
+Guide: [docs/observability.md](docs/observability.md).
+
+## 12. Evals (LLM, RAG, agents, tools, guardrails)
+
+```bash
+npm run evals                          # deterministic suites → tests/evals/results/evals.{json,md}
+ANTHROPIC_API_KEY=... npm run evals    # + Claude writes the programs, + LLM-as-judge
+```
+
+| Suite | Result (mock org) |
+|---|---|
+| tools: golden cases, error contract, output-schema conformance | 19/19 |
+| agent: tool recall/precision, order, budget, no writes, task checks | 12/12 · 4.5 tool calls / task |
+| rag: hit@3, MRR, nDCG, groundedness, abstention, poisoned article | hit@3 0.90 (single raw tool call: 0.0) · groundedness 1.0 · 2 known misses |
+| guardrails: labelled corpus + 9 attack scenarios + workflow false positives | precision 1.0 · recall 0.925 · FPR 0 · **held-out recall 0.5** |
+
+Results are identical across 10 repeated runs, and guardrails add 0.2–2.1 ms per execution (`npm run evals:repeat`). The misses are kept on purpose; [docs/evals.md](docs/evals.md) explains each one. The paper now has a section on these results. Results can be exported as OTel spans next to production traces.
+
+## 13. Tests and benchmarks
 
 ```bash
 npm run typecheck        # root + dashboard
 npm run lint
 npm test                 # all suites
 npm run test:unit | test:integration | test:security
+npm run evals            # quality evals → tests/evals/results/evals.{json,md}
 npm run bench -- 30      # writes tests/evaluations/results/benchmark.{json,md}
 npm run verify:deployment   # against a running/deployed gateway
 ```
@@ -145,7 +185,7 @@ React + TypeScript console served by the Worker: **Overview** (connection, gatew
 
 ## Documentation
 
-[architecture](docs/architecture.md) (10 Mermaid diagrams) · [security](docs/security.md) · [salesforce-setup](docs/salesforce-setup.md) · [oauth-setup](docs/oauth-setup.md) · [claude-integration](docs/claude-integration.md) · [tool-registry](docs/tool-registry.md) · [deployment](docs/deployment.md) · [troubleshooting](docs/troubleshooting.md) · [implementation-guide](docs/implementation-guide.md)
+[architecture](docs/architecture.md) (10 Mermaid diagrams) · [security](docs/security.md) · [prompt-injection guardrails](docs/prompt-injection-guardrails.md) · [observability](docs/observability.md) · [evals](docs/evals.md) · [salesforce-setup](docs/salesforce-setup.md) · [oauth-setup](docs/oauth-setup.md) · [claude-integration](docs/claude-integration.md) · [tool-registry](docs/tool-registry.md) · [deployment](docs/deployment.md) · [troubleshooting](docs/troubleshooting.md) · [implementation-guide](docs/implementation-guide.md)
 
 ## Manual configuration required
 

@@ -1,3 +1,4 @@
+export * from "./otel";
 import type { ExecutionOutcome, ToolCallRecord } from "@sfcm/shared-types";
 import type { StateStore } from "@sfcm/governance";
 
@@ -17,6 +18,10 @@ export interface ExecutionRecord {
   codeBytes: number;
   runtime: string;
   trace: ToolCallRecord[];
+  guardrailFindings?: number;
+  guardrailCategories?: string[];
+  guardrailTainted?: boolean;
+  guardrailBlockedWrites?: number;
 }
 
 export interface MetricsSnapshot {
@@ -34,6 +39,8 @@ export interface MetricsSnapshot {
   /** Salesforce API call count is measured; cost is an illustrative rate card, configurable. */
   estimatedCostUsd: number;
   series: Array<{ ts: string; durationMs: number; ok: boolean; toolCalls: number }>;
+  /** Prompt-injection guardrails: executions with findings, tainted executions, blocked writes, findings per category. */
+  guardrails: { executionsWithFindings: number; taintedExecutions: number; blockedWrites: number; byCategory: Record<string, number> };
 }
 
 const SF_API_CALL_USD = 0; // Salesforce API calls are entitlement-based, not metered per call.
@@ -66,6 +73,10 @@ export class MetricsCollector {
       codeBytes,
       runtime: m.runtime,
       trace: outcome.trace,
+      guardrailFindings: m.guardrails?.findings,
+      guardrailCategories: m.guardrails ? Object.keys(m.guardrails.byCategory) : undefined,
+      guardrailTainted: m.guardrails?.tainted,
+      guardrailBlockedWrites: m.guardrails?.blockedWrites,
     };
     await this.store.put(`metrics:x:${m.startedAt}:${m.executionId}`, rec);
     // Retention: drop oldest beyond maxRecords.
@@ -105,7 +116,15 @@ export class MetricsCollector {
         per.set(t.tool, e);
       }
     }
+    const guardrails = { executionsWithFindings: 0, taintedExecutions: 0, blockedWrites: 0, byCategory: {} as Record<string, number> };
+    for (const r of recs) {
+      if (r.guardrailFindings) guardrails.executionsWithFindings++;
+      if (r.guardrailTainted) guardrails.taintedExecutions++;
+      guardrails.blockedWrites += r.guardrailBlockedWrites ?? 0;
+      for (const c of r.guardrailCategories ?? []) guardrails.byCategory[c] = (guardrails.byCategory[c] ?? 0) + 1;
+    }
     return {
+      guardrails,
       totalExecutions: recs.length,
       failedExecutions: recs.filter((r) => !r.ok).length,
       avgLatencyMs: recs.length ? Math.round(lat.reduce((a, b) => a + b, 0) / recs.length) : 0,

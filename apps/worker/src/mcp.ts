@@ -14,7 +14,7 @@ function capabilitySummary(platform: Platform): string {
 }
 
 /** The Code Mode MCP server: exactly two tools, regardless of how many Salesforce APIs exist. */
-export function createCodeModeServer(platform: Platform, principal: Principal): McpServer {
+export function createCodeModeServer(platform: Platform, principal: Principal, traceparent?: string): McpServer {
   const server = new McpServer(
     { name: "salesforce-codemode", version: "0.1.0" },
     { instructions: "Salesforce Code Mode gateway. Call discover_capabilities once, then write ONE TypeScript program for execute_code that orchestrates all needed Salesforce calls and returns a compact result. Prefer this over many separate calls." },
@@ -66,7 +66,7 @@ export function createCodeModeServer(platform: Platform, principal: Principal): 
       try {
         requirePermission(principal, "execute");
         const { sf, adapters } = platform.salesforceFor(principal);
-        const outcome = await platform.engine.execute({ code: args.code, principal, sf, adapters, capabilities: args.capabilities, context: args.context });
+        const outcome = await platform.engine.execute({ code: args.code, principal, sf, adapters, capabilities: args.capabilities, context: args.context, traceparent });
         return { isError: !outcome.ok, content: [{ type: "text" as const, text: JSON.stringify(outcome, null, 2) }] };
       } catch (e) {
         const s = toSafeError(e);
@@ -81,7 +81,7 @@ export function createCodeModeServer(platform: Platform, principal: Principal): 
 export async function handleMcpRequest(request: Request, platform: Platform, principal: Principal, kind: "codemode" | "direct"): Promise<Response> {
   const server =
     kind === "codemode"
-      ? createCodeModeServer(platform, principal)
+      ? createCodeModeServer(platform, principal, request.headers.get("traceparent") ?? undefined)
       : createDirectMcpServer({ registry: platform.registry, sessionFactory: () => platform.newSession(principal, "direct") });
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
   await server.connect(transport);

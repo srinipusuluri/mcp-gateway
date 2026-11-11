@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { ExecutionPolicySchema, type ExecutionPolicy } from "@sfcm/governance";
+import { GuardrailPolicySchema, type GuardrailPolicy } from "@sfcm/security";
+import { otelConfigFromEnv, type OtelConfig } from "@sfcm/observability";
 
 export interface AppConfig {
   /** mock = built-in fake org (default); live = real Salesforce via user-scoped OAuth. */
@@ -10,6 +12,10 @@ export interface AppConfig {
   sf: { loginUrl: string; clientId?: string; clientSecret?: string; redirectUri?: string; apiVersion: string };
   tokenEncryptionKey?: string;
   policy: ExecutionPolicy;
+  /** Prompt-injection guardrail policy (GUARDRAIL_POLICY_JSON). */
+  guardrails: GuardrailPolicy;
+  /** OpenTelemetry export (standard OTEL_* variables). Undefined = tracing off. */
+  otel?: OtelConfig;
   anthropic: { apiKey?: string; model: string };
   publicUrl?: string;
 }
@@ -33,6 +39,8 @@ export function configFromEnv(env: Env): AppConfig {
     },
     tokenEncryptionKey: str(env.TOKEN_ENCRYPTION_KEY),
     policy: ExecutionPolicySchema.parse(policyOverrides.success ? policyOverrides.data : {}),
+    guardrails: GuardrailPolicySchema.parse(str(env.GUARDRAIL_POLICY_JSON) ? JSON.parse(str(env.GUARDRAIL_POLICY_JSON)!) : {}),
+    otel: otelConfigFromEnv(env),
     anthropic: { apiKey: str(env.ANTHROPIC_API_KEY), model: str(env.ANTHROPIC_MODEL) ?? "claude-sonnet-5-5" },
     publicUrl: str(env.PUBLIC_URL),
   };
@@ -50,5 +58,7 @@ export function validateConfig(c: AppConfig): string[] {
     if (!c.tokenEncryptionKey) problems.push("TOKEN_ENCRYPTION_KEY (32 bytes, base64) is required in live mode.");
     if (c.allowDevTokens) problems.push("ALLOW_DEV_TOKENS must be false in live mode.");
   }
+  if (c.mode === "live" && !c.guardrails.enabled) problems.push("Prompt-injection guardrails must stay enabled in live mode (GUARDRAIL_POLICY_JSON.enabled=false).");
+  if (c.otel?.captureContent && c.mode === "live") problems.push("OTEL_CAPTURE_CONTENT=true would send live Salesforce data to the trace backend; set it to false in live mode.");
   return problems;
 }

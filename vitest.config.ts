@@ -10,6 +10,7 @@ export default defineConfig({
       "@sfcm/security": p("./packages/security/src/index.ts"),
       "@sfcm/governance": p("./packages/governance/src/index.ts"),
       "@sfcm/observability": p("./packages/observability/src/index.ts"),
+      "@sfcm/evals": p("./packages/evals/src/index.ts"),
       "@sfcm/salesforce-client": p("./packages/salesforce-client/src/index.ts"),
       "@sfcm/tool-registry": p("./packages/tool-registry/src/index.ts"),
       "@sfcm/salesforce-mcp": p("./packages/salesforce-mcp/src/index.ts"),

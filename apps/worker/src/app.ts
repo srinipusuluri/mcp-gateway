@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { can, permissionsOf, requirePermission, ROLE_PERMISSIONS } from "@sfcm/governance";
-import { GatewayError, authenticateBearer, randomId, sha256Base64Url, signToken, toSafeError } from "@sfcm/security";
+import { BUILTIN_RULES, GUARDRAIL_CATEGORIES, GatewayError, authenticateBearer, randomId, sha256Base64Url, signToken, toSafeError } from "@sfcm/security";
 import { ALL_ROLES, type Principal, type Role } from "@sfcm/shared-types";
 import { SalesforceAuthError } from "@sfcm/salesforce-client";
 import { WORKFLOWS, findWorkflow } from "@sfcm/salesforce-mcp";
@@ -184,13 +184,15 @@ export function createApp(platform: Platform): FetchHandler {
       requirePermission(principal, "execute");
       const b = await body(req, z.object({ code: z.string().min(1).max(100_000), capabilities: z.array(z.string().max(80)).max(60).optional(), context: z.record(z.string(), z.unknown()).optional() }));
       const { sf, adapters } = platform.salesforceFor(principal);
-      return json(await platform.engine.execute({ code: b.code, principal, sf, adapters, capabilities: b.capabilities, context: { ...b.context, via: "dashboard" } }));
+      return json(await platform.engine.execute({ code: b.code, principal, sf, adapters, capabilities: b.capabilities, context: { ...b.context, via: "dashboard" }, traceparent: req.headers.get("traceparent") ?? undefined }));
     }
 
     // ----- Security center -----
     if (path === "/api/security/overview" && method === "GET") {
       return json({
         policy: g.policy.policy,
+        guardrails: { policy: platform.guardrails.policy, categoryActions: Object.fromEntries(GUARDRAIL_CATEGORIES.map((c) => [c, platform.guardrails.actionFor(c)])), builtinRules: BUILTIN_RULES.map((r) => ({ id: r.id, category: r.category, severity: r.severity, description: r.description })) },
+        telemetry: platform.telemetry ? { enabled: true, endpointHost: new URL(platform.telemetry.cfg.endpoint).host, captureContent: platform.telemetry.cfg.captureContent, sampleRatio: platform.telemetry.cfg.sampleRatio, exported: platform.telemetry.exported } : { enabled: false },
         rolePermissions: ROLE_PERMISSIONS,
         yourPermissions: [...permissionsOf(principal)],
         toolPermissions: platform.registry.list().map((t) => ({ tool: t.name, kind: t.kind, permission: t.permission, availability: t.availability, requiresApproval: g.policy.requiresApproval(t), allowedForYou: (() => { try { g.policy.authorizeTool(principal, t); return true; } catch { return false; } })() })),

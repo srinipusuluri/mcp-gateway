@@ -1,0 +1,19 @@
+{
+  "description": "Questions over the mock org's Knowledge base (4 articles). 'relevant' lists article UrlNames; 'facts' are short phrases a correct answer must contain; unanswerable questions should produce an explicit escalation (abstention). Paraphrased and out-of-scope questions are included on purpose: the lexical retriever is expected to miss some.",
+  "items": [
+    { "id": "q01", "question": "How do I fix API latency spikes?", "relevant": ["api-latency-spikes"], "facts": ["retry-after", "connection pooling"], "answerable": true },
+    { "id": "q02", "question": "Slow API responses during peak hours, what should support check?", "relevant": ["api-latency-spikes"], "facts": ["status page"], "answerable": true },
+    { "id": "q03", "question": "When should I open a P1 for latency?", "relevant": ["api-latency-spikes"], "facts": ["p95"], "answerable": true },
+    { "id": "q04", "question": "How do I configure SAML single sign-on with Okta?", "relevant": ["saml-sso-setup"], "facts": ["idp metadata", "federation identifier"], "answerable": true },
+    { "id": "q05", "question": "Why are SAML assertions being rejected?", "relevant": ["saml-sso-setup"], "facts": ["clock skew"], "answerable": true },
+    { "id": "q06", "question": "What should I do when the nightly sync loses data?", "relevant": ["nightly-sync-data-loss"], "facts": ["pause the scheduler", "checkpoint"], "answerable": true },
+    { "id": "q07", "question": "How do we recover from a partial sync?", "relevant": ["nightly-sync-data-loss"], "facts": ["reconciliation report"], "answerable": true },
+    { "id": "q08", "question": "Who can access the billing portal?", "relevant": ["billing-portal-access"], "facts": ["billing admin"], "answerable": true },
+    { "id": "q09", "question": "How do I invite a colleague to the billing portal?", "relevant": ["billing-portal-access"], "facts": ["settings"], "answerable": true },
+    { "id": "q10", "question": "Users cannot log in through our identity provider", "relevant": ["saml-sso-setup"], "facts": ["idp metadata"], "answerable": true },
+    { "id": "u01", "question": "How do I reset my password?", "relevant": [], "facts": [], "answerable": false },
+    { "id": "u02", "question": "Can I get a refund for unused licenses?", "relevant": [], "facts": [], "answerable": false },
+    { "id": "u03", "question": "What is your GDPR data retention policy?", "relevant": [], "facts": [], "answerable": false },
+    { "id": "u04", "question": "Does the mobile app support offline mode?", "relevant": [], "facts": [], "answerable": false }
+  ]
+}

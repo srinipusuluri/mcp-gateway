@@ -1,5 +1,6 @@
 import { ApprovalService, AuditLog, IdempotencyStore, PolicyEngine, RateLimiter, type StateStore } from "@sfcm/governance";
-import { MetricsCollector } from "@sfcm/observability";
+import { MetricsCollector, OtlpTraceExporter } from "@sfcm/observability";
+import { Guardrails } from "@sfcm/security";
 import { MockOrg, MockSalesforceClient, SalesforceClient, SalesforceOAuth, TokenVault, VaultTokenProvider, MOCK_USERS, type SalesforceApi } from "@sfcm/salesforce-client";
 import { createMockAdapters, createSalesforceRegistry, type SalesforceAdapters } from "@sfcm/salesforce-mcp";
 import { CodeModeEngine, type Executor } from "@sfcm/codemode-runtime";
@@ -13,6 +14,8 @@ export interface Platform {
   registry: ToolRegistry;
   governance: { policy: PolicyEngine; approvals: ApprovalService; audit: AuditLog; rateLimiter: RateLimiter; idempotency: IdempotencyStore };
   metrics: MetricsCollector;
+  guardrails: Guardrails;
+  telemetry?: OtlpTraceExporter;
   engine: CodeModeEngine;
   runtimeName: string;
   oauth?: SalesforceOAuth;
@@ -30,7 +33,7 @@ export function mockProfileFor(p: Principal): string {
   return order.find(([r]) => p.roles.includes(r))?.[1] ?? "sf_analyst";
 }
 
-export function createPlatform(o: { config: AppConfig; store: StateStore; executor: Executor; runtimeName: string; org?: MockOrg }): Platform {
+export function createPlatform(o: { config: AppConfig; store: StateStore; executor: Executor; runtimeName: string; org?: MockOrg; fetchImpl?: typeof fetch }): Platform {
   const { config, store } = o;
   const policy = new PolicyEngine(config.policy);
   const governance = {
@@ -42,7 +45,9 @@ export function createPlatform(o: { config: AppConfig; store: StateStore; execut
   };
   const registry = createSalesforceRegistry();
   const metrics = new MetricsCollector(store);
-  const engine = new CodeModeEngine({ registry, executor: o.executor, governance, metrics, runtimeName: o.runtimeName });
+  const guardrails = new Guardrails(config.guardrails);
+  const telemetry = config.otel ? new OtlpTraceExporter(config.otel, o.fetchImpl) : undefined;
+  const engine = new CodeModeEngine({ registry, executor: o.executor, governance, metrics, guardrails, telemetry, runtimeName: o.runtimeName });
   const org = o.org ?? new MockOrg();
   const mockAdapters = createMockAdapters(org.data);
 
@@ -64,10 +69,10 @@ export function createPlatform(o: { config: AppConfig; store: StateStore; execut
   };
 
   const platform: Platform = {
-    config, store, registry, governance, metrics, engine, runtimeName: o.runtimeName, oauth, vault, org, salesforceFor,
+    config, store, registry, governance, metrics, guardrails, telemetry, engine, runtimeName: o.runtimeName, oauth, vault, org, salesforceFor,
     newSession(principal, id = "api", allowedTools, sharedCache) {
       const { sf, adapters } = salesforceFor(principal);
-      return new ExecutionSession({ executionId: id, principal, sf, registry, governance, adapters, allowedTools, sharedCache });
+      return new ExecutionSession({ executionId: id, principal, sf, registry, governance, adapters, allowedTools, sharedCache, guardrails });
     },
   };
   return platform;

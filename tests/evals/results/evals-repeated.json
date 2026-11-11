@@ -1,0 +1,251 @@
+{
+  "generatedAt": "2026-11-11T19:18:52.106Z",
+  "node": "v24.10.0",
+  "platform": "darwin-arm64",
+  "runs": 10,
+  "overheadIterations": 30,
+  "suites": [
+    {
+      "suite": "tools",
+      "runs": 10,
+      "cases": 19,
+      "passedPerRun": [
+        19
+      ],
+      "gatePassedAllRuns": true,
+      "unstableMetrics": [],
+      "metrics": {
+        "schemaConformance": 1,
+        "behaviour": 1,
+        "errorContract": 1,
+        "passRate": 1
+      },
+      "wallMs": {
+        "mean": 7.2,
+        "p50": 4.6,
+        "p95": 31.7,
+        "min": 3.7,
+        "max": 31.7
+      }
+    },
+    {
+      "suite": "agent",
+      "runs": 10,
+      "cases": 12,
+      "passedPerRun": [
+        12
+      ],
+      "gatePassedAllRuns": true,
+      "unstableMetrics": [],
+      "metrics": {
+        "taskSuccess": 1,
+        "toolRecall": 1,
+        "toolPrecision": 1,
+        "orderScore": 1,
+        "withinBudget": 1,
+        "noForbiddenCalls": 1,
+        "singleRoundTrip": 1,
+        "leastPrivilege": 1,
+        "avgToolCallsPerTask": 4.5,
+        "avgSalesforceApiCallsPerTask": 5.1,
+        "passRate": 1
+      },
+      "wallMs": {
+        "mean": 34,
+        "p50": 28,
+        "p95": 89.3,
+        "min": 23.9,
+        "max": 89.3
+      }
+    },
+    {
+      "suite": "rag",
+      "runs": 10,
+      "cases": 15,
+      "passedPerRun": [
+        13
+      ],
+      "gatePassedAllRuns": true,
+      "unstableMetrics": [],
+      "metrics": {
+        "hit@3": 0.9,
+        "recall@3": 0.9,
+        "precision@1": 0.9,
+        "mrr": 0.9,
+        "ndcg@3": 0.9,
+        "rawTool.hit@3": 0,
+        "rawTool.mrr": 0,
+        "groundedness": 1,
+        "keyFactRecall": 0.9,
+        "abstentionAccuracy": 0.857,
+        "rawTool.abstained": 1,
+        "injectionResistance": 1,
+        "guardrailDetected": 1,
+        "unanswerableAbstention": 0.75,
+        "passRate": 0.867
+      },
+      "wallMs": {
+        "mean": 27.3,
+        "p50": 25.7,
+        "p95": 45.3,
+        "min": 22.6,
+        "max": 45.3
+      }
+    },
+    {
+      "suite": "guardrails",
+      "runs": 10,
+      "cases": 80,
+      "passedPerRun": [
+        77
+      ],
+      "gatePassedAllRuns": true,
+      "unstableMetrics": [],
+      "metrics": {
+        "correct": 0.957,
+        "scenario": 1,
+        "cleanWorkflowRate": 1,
+        "detectorPrecision": 1,
+        "detectorRecall": 0.925,
+        "detectorF1": 0.961,
+        "falsePositiveRate": 0,
+        "heldoutRecall": 0.5,
+        "recall.instruction_override": 0.75,
+        "recall.role_hijack": 1,
+        "recall.system_prompt_spoof": 1,
+        "recall.tool_coercion": 1,
+        "recall.secret_seeking": 0.667,
+        "recall.exfiltration": 1,
+        "recall.hidden_unicode": 1,
+        "recall.active_content": 1,
+        "passRate": 0.963
+      },
+      "wallMs": {
+        "mean": 37.7,
+        "p50": 34.7,
+        "p95": 48.3,
+        "min": 32.2,
+        "max": 48.3
+      }
+    }
+  ],
+  "overhead": [
+    {
+      "workflow": "account-360",
+      "p50OnMs": 2,
+      "p50OffMs": 1.3,
+      "deltaMs": 0.7,
+      "deltaPct": 56.9,
+      "p95OnMs": 2.8,
+      "p95OffMs": 2.6,
+      "resultBytes": 965
+    },
+    {
+      "workflow": "sales-pipeline",
+      "p50OnMs": 2.9,
+      "p50OffMs": 1.5,
+      "deltaMs": 1.4,
+      "deltaPct": 95.6,
+      "p95OnMs": 4.3,
+      "p95OffMs": 2.8,
+      "resultBytes": 1401
+    },
+    {
+      "workflow": "customer-risk",
+      "p50OnMs": 3.7,
+      "p50OffMs": 1.7,
+      "deltaMs": 2,
+      "deltaPct": 121.5,
+      "p95OnMs": 5,
+      "p95OffMs": 3,
+      "resultBytes": 765
+    },
+    {
+      "workflow": "service-intelligence",
+      "p50OnMs": 2.2,
+      "p50OffMs": 1.6,
+      "deltaMs": 0.6,
+      "deltaPct": 37.3,
+      "p95OnMs": 3.4,
+      "p95OffMs": 2.7,
+      "resultBytes": 812
+    },
+    {
+      "workflow": "opportunity-intelligence",
+      "p50OnMs": 2.6,
+      "p50OffMs": 1.5,
+      "deltaMs": 1.2,
+      "deltaPct": 78.4,
+      "p95OnMs": 4.1,
+      "p95OffMs": 4.2,
+      "resultBytes": 1512
+    },
+    {
+      "workflow": "cpq-analysis",
+      "p50OnMs": 2,
+      "p50OffMs": 1.6,
+      "deltaMs": 0.4,
+      "deltaPct": 25.4,
+      "p95OnMs": 2.8,
+      "p95OffMs": 2.8,
+      "resultBytes": 737
+    },
+    {
+      "workflow": "customer-360",
+      "p50OnMs": 2.6,
+      "p50OffMs": 2,
+      "deltaMs": 0.6,
+      "deltaPct": 30,
+      "p95OnMs": 3.9,
+      "p95OffMs": 3.1,
+      "resultBytes": 647
+    },
+    {
+      "workflow": "knowledge-assistant",
+      "p50OnMs": 2,
+      "p50OffMs": 1.8,
+      "deltaMs": 0.1,
+      "deltaPct": 7.3,
+      "p95OnMs": 3,
+      "p95OffMs": 2.6,
+      "resultBytes": 415
+    },
+    {
+      "workflow": "agentforce-integration",
+      "p50OnMs": 1.8,
+      "p50OffMs": 1.6,
+      "deltaMs": 0.2,
+      "deltaPct": 10.1,
+      "p95OnMs": 2.5,
+      "p95OffMs": 2.2,
+      "resultBytes": 420
+    },
+    {
+      "workflow": "cross-system-analysis",
+      "p50OnMs": 5.2,
+      "p50OffMs": 3.6,
+      "deltaMs": 1.6,
+      "deltaPct": 43.7,
+      "p95OnMs": 8.1,
+      "p95OffMs": 4.7,
+      "resultBytes": 622
+    }
+  ],
+  "throughput": [
+    {
+      "chars": 1000,
+      "msPerScan": 0.031,
+      "mbPerSec": 32.3
+    },
+    {
+      "chars": 10000,
+      "msPerScan": 0.144,
+      "mbPerSec": 69.3
+    },
+    {
+      "chars": 50000,
+      "msPerScan": 0.697,
+      "mbPerSec": 71.8
+    }
+  ]
+}

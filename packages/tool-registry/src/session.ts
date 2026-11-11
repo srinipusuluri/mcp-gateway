@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { SalesforceApiError, SalesforceAuthError, SoqlError, withMeter, type SalesforceApi } from "@sfcm/salesforce-client";
-import { GatewayError, redactValue } from "@sfcm/security";
+import { GatewayError, GuardrailState, redactValue, type Guardrails } from "@sfcm/security";
 import type { ApprovalService, AuditLog, IdempotencyStore, PolicyEngine, RateLimiter } from "@sfcm/governance";
 import { nowIso, type Principal, type ToolCallRecord } from "@sfcm/shared-types";
 import type { ToolRegistry } from "./registry";
@@ -25,6 +25,8 @@ export interface SessionOptions {
   allowedTools?: string[];
   /** Optional describe-cache shared across sessions (used by the evaluation baseline to model a caching MCP server). */
   sharedCache?: Map<string, unknown>;
+  /** Prompt-injection guardrails applied to tool outputs and write inputs. */
+  guardrails?: Guardrails;
 }
 
 function countRecords(v: unknown): number {
@@ -59,6 +61,8 @@ export class ExecutionSession {
   salesforceApiCalls = 0;
   recordsReturned = 0;
   redactions = 0;
+  /** Per-execution guardrail findings and taint (undefined when guardrails are not configured). */
+  readonly guard?: GuardrailState;
   private readonly allowed?: Set<string>;
   /** Shared across all tool calls of this execution (e.g. describe results). Holds promises. */
   private readonly cache: Map<string, unknown>;
@@ -66,6 +70,34 @@ export class ExecutionSession {
   constructor(private readonly o: SessionOptions) {
     this.allowed = o.allowedTools ? new Set(o.allowedTools) : undefined;
     this.cache = o.sharedCache ?? new Map<string, unknown>();
+    if (o.guardrails?.enabled) this.guard = new GuardrailState(o.guardrails);
+  }
+
+  private async guardrailEvent(name: string, outcome: "denied" | "success", detail: Record<string, unknown>) {
+    await this.o.governance.audit
+      .append({ action: "guardrail.triggered", userId: this.o.principal.userId, outcome, resource: name, detail: { executionId: this.o.executionId, ...detail } })
+      .catch(() => undefined);
+  }
+
+  /** Writes are refused once the execution is tainted, or when their own arguments carry injection text. */
+  private async guardWrite(name: string, input: unknown): Promise<void> {
+    const guard = this.guard;
+    if (!guard || guard.guard.policy.mode !== "enforce") return;
+    const p = guard.guard.policy;
+    if (p.blockWritesAfterInjection && guard.tainted) {
+      guard.blockedWrites++;
+      await this.guardrailEvent(name, "denied", { reason: "tainted_execution", taintSource: guard.taintSource });
+      throw new GatewayError("policy_violation", `Write '${name}' blocked: this execution read Salesforce text that matched prompt-injection policies (from '${guard.taintSource ?? "a tool"}'). Re-run the write in a separate execution after a human reviews the content.`, 403, { guardrail: "tainted_execution" });
+    }
+    if (p.scanWriteInputs) {
+      const insp = guard.guard.inspect(input, { source: "tool_input", tool: name });
+      guard.findings.push(...insp.findings);
+      if (guard.guard.isTainting(insp.maxSeverity) || insp.blocked) {
+        guard.blockedWrites++;
+        await this.guardrailEvent(name, "denied", { reason: "injected_write_input", rules: [...new Set(insp.findings.map((f) => f.ruleId))] });
+        throw new GatewayError("policy_violation", `Write '${name}' blocked: its arguments contain text that matches prompt-injection policies (${[...new Set(insp.findings.map((f) => f.category))].join(", ")}).`, 403, { guardrail: "injected_write_input" });
+      }
+    }
   }
 
   /** Tools this principal could call in this session (used to build sandbox bindings and discovery). */
@@ -107,6 +139,7 @@ export class ExecutionSession {
       await g.rateLimiter.check(`tool:${principal.userId}`, g.policy.policy.toolCallsPerMinute);
 
       const input = tool.input.parse(rawInput ?? {}) as unknown;
+      if (tool.kind === "write") await this.guardWrite(name, input);
 
       let approvalId: string | undefined;
       if (g.policy.requiresApproval(tool)) {
@@ -128,8 +161,20 @@ export class ExecutionSession {
       const run = () => tool.handler(ctx, input);
       const raw = approvalId ? (await g.idempotency.run(`write:${approvalId}`, run)).value : await run();
 
-      const { value, redactions } = redactValue(raw);
+      const redacted = redactValue(raw);
+      const redactions = redacted.redactions;
+      let value = redacted.value;
       this.salesforceApiCalls += meter.calls;
+      if (this.guard) {
+        // Indirect prompt injection: every string returned by Salesforce is scanned before the sandbox (and model) sees it.
+        const insp = this.guard.guard.inspect(value, { source: "tool_output", tool: name });
+        this.guard.record(insp, name);
+        if (insp.findings.length) {
+          await this.guardrailEvent(name, insp.blocked ? "denied" : "success", { findings: insp.findings.length, maxSeverity: insp.maxSeverity, rules: [...new Set(insp.findings.map((f) => f.ruleId))].slice(0, 10) });
+        }
+        if (insp.blocked) throw new GatewayError("policy_violation", `Result of '${name}' was withheld: it contains content blocked by prompt-injection policy.`, 403, { guardrail: "blocked_output" });
+        value = insp.value;
+      }
       this.redactions += redactions;
       const n = countRecords(value);
       this.recordsReturned += n;

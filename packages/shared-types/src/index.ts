@@ -53,6 +53,18 @@ export interface ExecutionMetadata {
   resultBytes: number;
   truncated: boolean;
   runtime: string;
+  /** Prompt-injection guardrail outcome for this execution (absent when nothing matched). */
+  guardrails?: {
+    mode: "enforce" | "monitor";
+    findings: number;
+    byCategory: Record<string, number>;
+    maxSeverity?: string;
+    tainted: boolean;
+    blockedWrites: number;
+    sanitizedFields: number;
+    notice?: string;
+    details: Array<{ ruleId: string; category: string; severity: string; action: string; source: string; tool?: string; path: string; excerpt: string }>;
+  };
 }
 
 export interface ExecutionOutcome {
@@ -78,7 +90,8 @@ export type AuditAction =
   | "approval.rejected"
   | "approval.consumed"
   | "ratelimit.exceeded"
-  | "policy.violation";
+  | "policy.violation"
+  | "guardrail.triggered";
 
 export interface AuditEvent {
   id: string;

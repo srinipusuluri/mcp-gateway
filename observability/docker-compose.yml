@@ -1,0 +1,36 @@
+# Local open-source observability stack for the Code Mode gateway and its evals.
+#
+#   docker compose -f observability/docker-compose.yml up -d
+#   export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318     # .dev.vars for `npm run dev:worker`
+#
+#   Phoenix (LLM/agent traces, OpenInference)  http://localhost:6006
+#   Jaeger  (distributed tracing)              http://localhost:16686
+#
+# The gateway sends OTLP/HTTP JSON to the collector; the collector hashes user ids, batches and fans out
+# over OTLP/gRPC. Everything stays on this machine. Images are pinned; bump deliberately.
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.164.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "127.0.0.1:4318:4318" # OTLP/HTTP in (gateway, evals)
+    depends_on: [phoenix, jaeger]
+
+  phoenix:
+    image: arizephoenix/phoenix:version-20.27.0
+    environment:
+      - PHOENIX_WORKING_DIR=/data
+    volumes:
+      - phoenix-data:/data
+    ports:
+      - "127.0.0.1:6006:6006" # UI
+
+  jaeger:
+    image: jaegertracing/jaeger:2.22.0
+    ports:
+      - "127.0.0.1:16686:16686" # UI
+
+volumes:
+  phoenix-data:

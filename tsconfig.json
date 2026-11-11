@@ -32,6 +32,9 @@
       "@sfcm/observability": [
         "packages/observability/src/index.ts"
       ],
+      "@sfcm/evals": [
+        "packages/evals/src/index.ts"
+      ],
       "@sfcm/salesforce-client": [
         "packages/salesforce-client/src/index.ts"
       ],
